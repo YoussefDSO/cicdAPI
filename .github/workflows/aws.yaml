@@ -34,12 +34,13 @@ jobs:
         cd ..
 
     - name: Deploy to AWS Elastic Beanstalk
-      uses: einaregilsson/eb-deploy@v21
+      uses: aws-actions/aws-elastic-beanstalk-deploy@v1
       with:
-        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        application_name: cicdAPI
-        environment_name: CicdAPI-env
-        version_label: ${{ github.run_id }}
+        application-name: cicdAPI
+        environment-name: CicdAPI-env
+        version-label: ${{ github.run_id }}
         region: eu-north-1
-        deployment_package: site.zip
+        deployment-package: site.zip
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
