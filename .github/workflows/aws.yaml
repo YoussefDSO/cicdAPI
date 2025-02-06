@@ -40,5 +40,5 @@ jobs:
         application_name: cicdAPI
         environment_name: CicdAPI-env
         version_label: ${{ github.run_id }}
-        region: us-east-1
+        region: eu-north-1
         deployment_package: site.zip
