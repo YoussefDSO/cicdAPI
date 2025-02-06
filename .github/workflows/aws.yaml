@@ -1,46 +1,40 @@
-name: Build and Push to AWS
+name: Build and push to aws
 
 on:
   push:
     branches:
-      - dev   # Körs när en push görs till dev-grenen
-      - main  # Körs när en push görs till main-grenen
+      - dev   # Körs när det görs en push till dev-grenen
   pull_request:
     branches:
-      - main  # Körs när en pull request görs mot main-grenen från dev
+      - main  # Körs när en pull request görs mot main-grenen
+
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: checkout repo
       uses: actions/checkout@v3
 
-    - name: Setup .NET 6.0
+    - name: setup dotnet
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '6.0'
 
     - name: Build project
-      run: |
-        dotnet restore
-        dotnet publish -c Release -o site
+      run: dotnet restore; dotnet publish -o site;
 
-    - name: Create zip package
-      run: |
-        cd site
-        zip ../site.zip ./*
-        cd ..
+    - name: create zip package
+      run: cd site; zip ../site.zip *;
 
-    - name: Deploy to AWS Elastic Beanstalk
-      uses: aws-actions/aws-elastic-beanstalk-deploy@v1
+    - name: Deploy to aws EB
+      uses: einaregilsson/eb-deploy@v21
       with:
-        application-name: cicdAPI
-        environment-name: CicdAPI-env
-        version-label: ${{ github.run_id }}
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        application_name: cicdAPI
+        environment_name: CicdAPI-env
+        version_label: ${{ github.run_id }}
         region: eu-north-1
-        deployment-package: site.zip
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        deployment_package: site.zip
