@@ -37,8 +37,8 @@ jobs:
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        application_name: cicdAPI
-        environment_name: CicdAPI-env
+        application_name: Cicd
+        environment_name: Cicd-env
         version_label: ${{ github.run_id }}
         region: eu-north-1
         deployment_package: site.zip
