@@ -48,7 +48,7 @@ jobs:
 
       # Steg 8: Deploy to AWS Elastic Beanstalk
       - name: Deploy to AWS Elastic Beanstalk
-        uses: aws-actions/elastic-beanstalk-deploy@v1
+        uses: aws-actions/aws-elastic-beanstalk-deploy@v1
         with:
           application-name: cicdAPI           # Här använder vi det specifika namn du gav
           environment-name: CicdAPI-env      # Här använder vi det specifika namn du gav
