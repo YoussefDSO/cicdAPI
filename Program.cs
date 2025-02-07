@@ -1,16 +1,12 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using System;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Lägg till CORS
+// ✅ Tillåt alla CORS-förfrågningar
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -19,7 +15,7 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
-// ✅ Lägg till Swagger
+// ✅ Lägg till tjänster
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -33,19 +29,21 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// ✅ Aktivera CORS och Swagger
+// ✅ Aktivera CORS
 app.UseCors();
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+
+// ✅ Aktivera Swagger endast i utvecklingsläge
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Caesar Cipher API v1");
-        c.RoutePrefix = string.Empty;
+        c.RoutePrefix = string.Empty; // Startar Swagger UI direkt på rot-URL
     });
 }
 
-// ✅ Caesar Cipher funktioner
+// ✅ Enkel implementation av Caesar Chiffer (shift 3)
 string CaesarEncrypt(string input, int shift)
 {
     var result = new StringBuilder();
@@ -60,57 +58,33 @@ string CaesarEncrypt(string input, int shift)
         }
         else
         {
-            result.Append(c);
+            result.Append(c); // Lämna icke-bokstäver oförändrade
         }
     }
     return result.ToString();
 }
 
-string CaesarDecrypt(string input, int shift) => CaesarEncrypt(input, 26 - shift);
+string CaesarDecrypt(string input, int shift)
+{
+    return CaesarEncrypt(input, 26 - shift); // Motsatt shift för att dekryptera
+}
 
-// ✅ API Endpoints
-app.MapGet("/", () => Results.Ok("API is running!"));
+// ✅ Lägg till GET-endpoint på "/"
+app.MapGet("/", () => "API is running!");
 
 // ✅ Kryptering endpoint
-app.MapPost("/encrypt", async (HttpContext context) =>
+app.MapPost("/encrypt", (string text) =>
 {
-    try
-    {
-        var request = await context.Request.ReadFromJsonAsync<RequestData>();
-        if (request == null || string.IsNullOrWhiteSpace(request.Text))
-            return Results.BadRequest("Text is required.");
-
-        return Results.Ok(new { encrypted = CaesarEncrypt(request.Text, 3) });
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem($"Error: {ex.Message}");
-    }
+    if (string.IsNullOrEmpty(text)) return Results.BadRequest("Text is required.");
+    return Results.Ok(CaesarEncrypt(text, 3)); // Använd Caesar Shift 3
 });
 
 // ✅ Avkryptering endpoint
-app.MapPost("/decrypt", async (HttpContext context) =>
+app.MapPost("/decrypt", (string text) =>
 {
-    try
-    {
-        var request = await context.Request.ReadFromJsonAsync<RequestData>();
-        if (request == null || string.IsNullOrWhiteSpace(request.Text))
-            return Results.BadRequest("Text is required.");
-
-        return Results.Ok(new { decrypted = CaesarDecrypt(request.Text, 3) });
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem($"Error: {ex.Message}");
-    }
+    if (string.IsNullOrEmpty(text)) return Results.BadRequest("Text is required.");
+    return Results.Ok(CaesarDecrypt(text, 3)); // Använd Caesar Shift 3 för dekryptering
 });
 
-// ✅ Kör på rätt port
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-app.Run($"http://0.0.0.0:{port}");
-
-public class RequestData
-{
-    [JsonPropertyName("text")]
-    public string Text { get; set; } = string.Empty;
-}
+// ✅ Starta API på rätt port
+app.Run("http://localhost:5193");
