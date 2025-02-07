@@ -3,10 +3,8 @@
 on:
   push:
     branches:
-      - dev   # Körs vid push till dev-grenen
-  pull_request:
-    branches:
-      - main  # Körs vid pull request till main
+      - main   # Körs vid push till dev-grenen
+
 
 jobs:
   build-and-deploy:
