@@ -1,38 +1,57 @@
-﻿name: Build and Deploy to AWS Elastic Beanstalk
+﻿name: Build, test and push to aws
 
 on:
   push:
     branches:
       - main
+      - development  # Kan användas för VG, men är här för godkänd nivå också
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 🛒 Check out repository
+    - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: 🏗️ Set up .NET
+    - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '9.0.x'
+        dotnet-version: '9.0'
 
-    - name: 🔧 Restore dependencies
-      run: dotnet restore
+    - name: Restore dependencies
+      run: dotnet restore cicdAPI.csproj  # Justera namnet på ditt projekt om det behövs
 
-    - name: 🔬 Run tests
-      run: dotnet test --configuration Release --no-build
+    - name: Build project
+      run: dotnet build cicdAPI.csproj --configuration Release
 
-    - name: 🏗️ Build project
-      run: dotnet publish -c Release -f net9.0 -o site
+    - name: Run tests
+      run: dotnet test cicdAPI.csproj --configuration Release --no-build
 
-    - name: 📦 Create zip package
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.0'
+
+    - name: Build and publish project
+      run: |
+        dotnet restore cicdAPI.csproj
+        dotnet publish cicdAPI.csproj -c Release -f net9.0 -o site
+
+    - name: Create zip package
       run: |
         cd site
         zip -r ../site.zip .
 
-    - name: 🚀 Deploy to AWS Elastic Beanstalk
+    - name: Deploy to AWS Elastic Beanstalk
       uses: einaregilsson/beanstalk-deploy@v21
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -42,6 +61,3 @@ jobs:
         version_label: ${{ github.run_id }}
         region: eu-north-1
         deployment_package: site.zip
-
-    - name: ✅ Deployment successful
-      run: echo "Deployment to AWS Elastic Beanstalk was successful!"

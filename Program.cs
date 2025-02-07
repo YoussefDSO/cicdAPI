@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +34,7 @@ var app = builder.Build();
 app.UseCors();
 
 // ✅ Aktivera Swagger
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
@@ -69,31 +68,18 @@ string CaesarEncrypt(string input, int shift)
 string CaesarDecrypt(string input, int shift) => CaesarEncrypt(input, 26 - shift);
 
 // ✅ Definiera API-endpoints
-app.MapGet("/", () => TypedResults.Ok("API is running!"));
-
-// ✅ Kryptering endpoint
-app.MapPost("/encrypt", async (HttpContext context) =>
+app.MapPost("/encrypt", (HttpContext context, string text) =>
 {
-    var request = await context.Request.ReadFromJsonAsync<RequestData>();
-    if (request == null || string.IsNullOrWhiteSpace(request.Text))
-        return TypedResults.BadRequest("Text is required.");
-    return TypedResults.Ok(new { encrypted = CaesarEncrypt(request.Text, 3) });
+    if (string.IsNullOrWhiteSpace(text))
+        return Results.BadRequest("Text is required.");
+    return Results.Ok(new { encrypted = CaesarEncrypt(text, 3) });
 });
 
-// ✅ Avkryptering endpoint
-app.MapPost("/decrypt", async (HttpContext context) =>
+app.MapPost("/decrypt", (HttpContext context, string text) =>
 {
-    var request = await context.Request.ReadFromJsonAsync<RequestData>();
-    if (request == null || string.IsNullOrWhiteSpace(request.Text))
-        return TypedResults.BadRequest("Text is required.");
-    return TypedResults.Ok(new { decrypted = CaesarDecrypt(request.Text, 3) });
+    if (string.IsNullOrWhiteSpace(text))
+        return Results.BadRequest("Text is required.");
+    return Results.Ok(new { decrypted = CaesarDecrypt(text, 3) });
 });
 
-// ✅ Kör på rätt port för AWS Elastic Beanstalk
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-app.Run($"http://+:{port}");
-
-public class RequestData
-{
-    public string Text { get; set; } = string.Empty;
-}
+app.Run("http://+:5000");
