@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
@@ -15,7 +16,7 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
-// ✅ Lägg till tjänster
+// ✅ Lägg till Swagger och API Explorer
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -43,7 +44,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// ✅ Enkel implementation av Caesar Chiffer (shift 3)
+// ✅ Caesar Chiffer funktioner
 string CaesarEncrypt(string input, int shift)
 {
     var result = new StringBuilder();
@@ -58,32 +59,31 @@ string CaesarEncrypt(string input, int shift)
         }
         else
         {
-            result.Append(c); // Lämna icke-bokstäver oförändrade
+            result.Append(c);
         }
     }
     return result.ToString();
 }
 
-string CaesarDecrypt(string input, int shift)
-{
-    return CaesarEncrypt(input, 26 - shift); // Motsatt shift för att dekryptera
-}
+string CaesarDecrypt(string input, int shift) => CaesarEncrypt(input, 26 - shift);
 
-// ✅ Lägg till GET-endpoint på "/"
-app.MapGet("/", () => "API is running!");
+// ✅ Definiera API-endpoints
+app.MapGet("/", () => Results.Ok("API is running!"));
 
 // ✅ Kryptering endpoint
-app.MapPost("/encrypt", (string text) =>
+app.MapPost("/encrypt", (HttpContext context, string text) =>
 {
-    if (string.IsNullOrEmpty(text)) return Results.BadRequest("Text is required.");
-    return Results.Ok(CaesarEncrypt(text, 3)); // Använd Caesar Shift 3
+    if (string.IsNullOrWhiteSpace(text))
+        return Results.BadRequest("Text is required.");
+    return Results.Ok(CaesarEncrypt(text, 3));
 });
 
 // ✅ Avkryptering endpoint
-app.MapPost("/decrypt", (string text) =>
+app.MapPost("/decrypt", (HttpContext context, string text) =>
 {
-    if (string.IsNullOrEmpty(text)) return Results.BadRequest("Text is required.");
-    return Results.Ok(CaesarDecrypt(text, 3)); // Använd Caesar Shift 3 för dekryptering
+    if (string.IsNullOrWhiteSpace(text))
+        return Results.BadRequest("Text is required.");
+    return Results.Ok(CaesarDecrypt(text, 3));
 });
 
 // ✅ Starta API på rätt port
