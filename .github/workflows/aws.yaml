@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - development  # Kan användas för VG, men är här för godkänd nivå också
+      - dev  # Kan användas för VG, men är här för godkänd nivå också
 
 jobs:
   build:
