@@ -3,8 +3,7 @@
 on:
   push:
     branches:
-      - main   # Körs vid push till dev-grenen
-
+      - main  # Körs vid push till main-branchen
 
 jobs:
   build-and-deploy:
@@ -21,6 +20,9 @@ jobs:
 
     - name: 🔧 Restore dependencies
       run: dotnet restore
+
+    - name: 🔬 Run tests
+      run: dotnet test --configuration Release --no-build  # Kör tester innan build
 
     - name: 🏗️ Build project
       run: dotnet publish -c Release -o site
@@ -40,3 +42,6 @@ jobs:
         version_label: ${{ github.run_id }}
         region: eu-north-1
         deployment_package: site.zip
+
+    - name: ✅ Deployment successful
+      run: echo "Deployment to AWS Elastic Beanstalk was successful!"
