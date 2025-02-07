@@ -1,36 +1,44 @@
-name: Build and push to aws
+﻿name: Build and Deploy to AWS Elastic Beanstalk 
 
 on:
   push:
     branches:
-      - main
+      - dev   # Körs vid push till dev-grenen
+  pull_request:
+    branches:
+      - main  # Körs vid pull request till main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: checkout repo
+    - name: 🛒 Check out repository
       uses: actions/checkout@v3
 
-    - name: setup dotnet
+    - name: 🏗️ Set up .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '6.0'
+        dotnet-version: '9.0'  # Uppdaterad till .NET 9
 
-    - name: Build project
-      run: dotnet restore; dotnet publish -o site;
+    - name: 🔧 Restore dependencies
+      run: dotnet restore
 
-    - name: create zip package
-      run: cd site; zip ../site.zip *;
+    - name: 🏗️ Build project
+      run: dotnet publish -c Release -o site
 
-    - name: Deploy to aws EB
-      uses: einaregilsson/eb-deploy@v21
+    - name: 📦 Create zip package
+      run: |
+        cd site
+        zip -r ../site.zip .  # Skapar en zip-fil av byggda filer
+
+    - name: 🚀 Deploy to AWS Elastic Beanstalk
+      uses: einaregilsson/beanstalk-deploy@v21
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        application_name: cicdAPI
-        environment_name: CicdAPI-env
+        application_name: Cicd
+        environment_name: Cicd-env
         version_label: ${{ github.run_id }}
         region: eu-north-1
         deployment_package: site.zip
