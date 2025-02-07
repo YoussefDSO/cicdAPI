@@ -1,9 +1,9 @@
-﻿name: Build and Deploy to AWS Elastic Beanstalk 
+﻿name: Build and Deploy to AWS Elastic Beanstalk
 
 on:
   push:
     branches:
-      - main  # Körs vid push till main-branchen
+      - main
 
 jobs:
   build-and-deploy:
@@ -16,7 +16,7 @@ jobs:
     - name: 🏗️ Set up .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '9.0'
+        dotnet-version: '9.0.x'
 
     - name: 🔧 Restore dependencies
       run: dotnet restore
