@@ -1,4 +1,4 @@
-﻿name: Build and Deploy to AWS Elastic Beanstalk
+﻿name: Build and Deploy to AWS Elastic Beanstalk 
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
     - name: 🏗️ Set up .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '6.0'
+        dotnet-version: '9.0'  # Uppdaterad till .NET 9
 
     - name: 🔧 Restore dependencies
       run: dotnet restore
