@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
 		<!-- Uppdaterad till .NET 9 -->
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
