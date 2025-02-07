@@ -6,6 +6,15 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ✅ Tillåt alla CORS-förfrågningar
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader());
+});
+
 // ✅ Lägg till tjänster
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -19,6 +28,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// ✅ Aktivera CORS
+app.UseCors();
 
 // ✅ Aktivera Swagger endast i utvecklingsläge
 if (app.Environment.IsDevelopment())
@@ -57,6 +69,9 @@ string CaesarDecrypt(string input, int shift)
     return CaesarEncrypt(input, 26 - shift); // Motsatt shift för att dekryptera
 }
 
+// ✅ Lägg till GET-endpoint på "/"
+app.MapGet("/", () => "API is running!");
+
 // ✅ Kryptering endpoint
 app.MapPost("/encrypt", (string text) =>
 {
@@ -71,5 +86,5 @@ app.MapPost("/decrypt", (string text) =>
     return Results.Ok(CaesarDecrypt(text, 3)); // Använd Caesar Shift 3 för dekryptering
 });
 
-// ✅ Starta API
-app.Run();
+// ✅ Starta API på rätt port
+app.Run("http://localhost:5193");
