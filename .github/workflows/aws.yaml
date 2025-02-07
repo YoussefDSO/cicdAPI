@@ -1,57 +1,39 @@
-﻿name: Build, test and push to aws
+﻿name: Build and Deploy to AWS Elastic Beanstalk
 
 on:
   push:
     branches:
-      - main
-      - dev  # Kan användas för VG, men är här för godkänd nivå också
+      - main   # Körs vid push till main-branchen
+      - development  # För VG: använd även en development-branch
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: 🛒 Check out repository
       uses: actions/checkout@v3
 
-    - name: Setup .NET
+    - name: 🏗️ Set up .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '9.0'
+        dotnet-version: '9.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore cicdAPI.csproj  # Justera namnet på ditt projekt om det behövs
+    - name: 🔧 Restore dependencies
+      run: dotnet restore
 
-    - name: Build project
-      run: dotnet build cicdAPI.csproj --configuration Release
+    - name: 🔬 Run tests
+      run: dotnet test --configuration Release --no-build
 
-    - name: Run tests
-      run: dotnet test cicdAPI.csproj --configuration Release --no-build
+    - name: 🏗️ Build project
+      run: dotnet publish -c Release -f net9.0 -o site
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '9.0'
-
-    - name: Build and publish project
-      run: |
-        dotnet restore cicdAPI.csproj
-        dotnet publish cicdAPI.csproj -c Release -f net9.0 -o site
-
-    - name: Create zip package
+    - name: 📦 Create zip package
       run: |
         cd site
         zip -r ../site.zip .
 
-    - name: Deploy to AWS Elastic Beanstalk
+    - name: 🚀 Deploy to AWS Elastic Beanstalk
       uses: einaregilsson/beanstalk-deploy@v21
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
