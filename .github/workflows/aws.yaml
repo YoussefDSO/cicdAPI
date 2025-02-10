@@ -1,47 +1,49 @@
-﻿name: Build and Deploy to AWS Elastic Beanstalk 
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
-      - main  # Körs vid push till main-branchen
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 🛒 Check out repository
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: 🏗️ Set up .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '9.0'  # Uppdaterad till .NET 9
+      - name: Setup .NET 9.0.102
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.102'
 
-    - name: 🔧 Restore dependencies
-      run: dotnet restore
+      - name: Build project
+        run: dotnet build --configuration Release
 
-    - name: 🔬 Run tests
-      run: dotnet test --configuration Release --no-build  # Kör tester innan build
+      - name: Run Tests
+        run: dotnet test --configuration Release
 
-    - name: 🏗️ Build project
-      run: dotnet publish -c Release -o site
+      - name: Publish Application
+        run: dotnet publish -c Release -o ./publish
 
-    - name: 📦 Create zip package
-      run: |
-        cd site
-        zip -r ../site.zip .  # Skapar en zip-fil av byggda filer
+      - name: Zip published files
+        run: |
+          cd publish
+          zip -r ../site.zip ./*
+          cd ..
 
-    - name: 🚀 Deploy to AWS Elastic Beanstalk
-      uses: einaregilsson/beanstalk-deploy@v21
-      with:
-        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        application_name: Cicd
-        environment_name: Cicd-env
-        version_label: ${{ github.run_id }}
-        region: eu-north-1
-        deployment_package: site.zip
-
-    - name: ✅ Deployment successful
-      run: echo "Deployment to AWS Elastic Beanstalk was successful!"
+      - name: Deploy to AWS Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          region: eu-north-1
+          application_name: cicd
+          environment_name: Cicd-env
+          version_label: ${{ github.run_id }}
+          deployment_package: site.zip
